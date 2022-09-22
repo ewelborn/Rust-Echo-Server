@@ -6,7 +6,14 @@ use std::str::from_utf8;
 fn handle_client(mut stream: TcpStream) {
     let mut buffer: [u8; 500] = [0; 500];
 
-    let client_ip_addr = stream.peer_addr().unwrap();
+    let client_ip_addr = match stream.peer_addr() {
+        Ok(addr) => addr,
+        Err(err) => {
+            println!("{err}");
+            println!("Expected peer address, could not retrieve it - disconnecting");
+            return
+        },
+    };
 
     println!("Handling client {client_ip_addr}");
 
@@ -16,7 +23,14 @@ fn handle_client(mut stream: TcpStream) {
             return;
         }
 
-        let original_string = from_utf8(&buffer).unwrap();
+        let original_string = match from_utf8(&buffer) {
+            Ok(str) => str,
+            Err(err) => {
+                println!("{err}");
+                println!("Could not decode input data from client into UTF-8 - disconnecting");
+                return
+            },
+        };
         println!("Received {original_string}");
 
         let uppercase_string = original_string.to_uppercase();
